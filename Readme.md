@@ -177,6 +177,31 @@ stages:
         command: 'push'
         tags: '$(tag)'
 ```
+Create k8s cluster in azure 
+
+create a shell script in azure repo where it has to update the image(i.e, under worker,vote,result) in azure repos from acr automatically to latest based on acr.(registryname/reponame:build number)
+Gitops will always monitor the git repos since new image is updated to azure repo it will be deployed to k8s cluster.
+
+continuos reconciliation
+drift fixed
+
+```bash
+login to k8s cluster
+install argocd
+configure argocd within k8s cluster
+write shell script for update the images which is published to acr
+```
+```bash
+az aks get-credentials --resource-group <Resource-Group-Name> --name <AKS-Cluster-Name>
+```
+```
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+```bash
+kubectl get pods -n argocd
+```
+
 
 
 
