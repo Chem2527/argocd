@@ -121,6 +121,62 @@ below commands need to execute on agent
 14. cd myagent/
 15. ./run.sh
 ```
+sample azure pipeline for worker service
+```bash
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+  paths:
+    include:
+      - worker/*
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'ff16b353-46e3-406b-a6f1-832d047f6c95'
+  imageRepository: 'workerapp'
+  containerRegistry: 'saikrishna.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/worker/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+pool:
+  name: "azureagent"
+
+stages:
+- stage: Build
+  displayName: Build 
+  jobs:
+  - job: Build
+    displayName: Build
+   
+    steps:
+    - task: Docker@2
+      displayName: Build 
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: 'worker/Dockerfile'
+        tags: '$(tag)'
+- stage: push
+  displayName: push 
+  jobs:
+  - job: push
+    displayName: push
+   
+    steps:
+    - task: Docker@2
+      displayName: push
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'push'
+        tags: '$(tag)'
+```
 
 
 
