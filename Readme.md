@@ -6,7 +6,6 @@ Gitops is not only abt application deployment it also manages infra. Before Gito
 If source code is having proper tracking why your deployment doesnt have proper tracking. 
 
 we will be putting a declarative yaml in a git repository
-
 lets say u deployed and modified something in code we dont have proper tracking 
 and deploying to k8s
 here gitops came into picture
