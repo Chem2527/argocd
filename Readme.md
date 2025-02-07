@@ -1,3 +1,4 @@
+```bash
 GitOps uses git as single source of truth to deliver applications and infra.
 
 Gitops is not only abt application deployment it also manages infra. Before Gitops came intopicture there is no mechanism of versioning and auditing
@@ -42,7 +43,7 @@ Argo installation methods:
 yaml manifests
 helm
 operator
-
+```
 ## Argo hands-on
 
 CI pipelines implementation
@@ -199,10 +200,106 @@ kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 ```bash
+az login
+az aks get-credentials --resource-group abc --name saikrishna --overwrite-existing
+kubectl get pods
+kubectl get deployments --all-namespaces=true
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl get pods -n argocd
+kubectl get pods -n argocd -w
 kubectl get pods -n argocd
 ```
+Configure argoCd
+Get the password of argocd for integrating it with azure repo
+```bash
+kubectl get secrets -n argocd
 
+AzureAD+SaikrishnaKakumanu@saikrishna MINGW64 ~
+$ kubectl get secrets -n argocd
+NAME                          TYPE     DATA   AGE
+argocd-initial-admin-secret   Opaque   1      4m46s
+argocd-notifications-secret   Opaque   0      5m19s
+argocd-redis                  Opaque   1      4m51s
+argocd-secret                 Opaque   5      5m19s
 
+```
+```bash
+kubectl edit secret argocd-initial-admin-secret -n argocd
+```
+copy the password from above file
+since secrets are base 64 encode we need to decrpt that.
+```bash
+echo <pwsd> | base64 --decode
+```
+copy the password and dont include % at the time of copying
+```bash
+kubectl get svc -n argocd
+NAME                                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+argocd-applicationset-controller          ClusterIP   10.0.248.225   <none>        7000/TCP,8080/TCP            10m
+argocd-dex-server                         ClusterIP   10.0.33.56     <none>        5556/TCP,5557/TCP,5558/TCP   10m
+argocd-metrics                            ClusterIP   10.0.117.116   <none>        8082/TCP                     10m
+argocd-notifications-controller-metrics   ClusterIP   10.0.169.101   <none>        9001/TCP                     10m
+argocd-redis                              ClusterIP   10.0.64.206    <none>        6379/TCP                     10m
+argocd-repo-server                        ClusterIP   10.0.250.159   <none>        8081/TCP,8084/TCP            10m
+argocd-server                             ClusterIP   10.0.107.190   <none>        80/TCP,443/TCP               10m
+argocd-server-metrics                     ClusterIP   10.0.192.11    <none>        8083/TCP                     10m
+```
+by deafult its in clusterIP and we need to change that to Nodeport
+```bash
+kubectl edit svc argocd-server  -n argocd #change the type from clusterIP to NodePort
+```
+navigate to VMSS and click on instances ---> networking ---> inbound rule
 
+access it vai ui through---> https://23.96.57.41:32104/
+navigate to settings and click on repositories
+under repo url in argocd provide below
+```bash
+https://BWU6rAdkPTZEqefdakobhqotGhqHauX9w4Pp6tANtt7Ur5leoCHxJQQJ99BBACAAAAAAAAAAAAASAZDOpZZT@dev.azure.com/saikrishna-org/voting-app/_git/voting-app
+instead of https://saikrishna-org@dev.azure.com/saikrishna-org/voting-app/_git/voting-app
+```
+Note whether the connection status is succesful or not.
 
+Once connection is success
+navigate to applications ---> new app--->
+argocd-poc --> application name
+syncying policy --> automatic(#argocd takes 3 mins for identifying the change)
+```bash
+we need to argocd that which path or directory that argocd need to look for changes in repo in our case its** k8s-specifications**
+```
 
+add a new stage under all the worker,voting,result pipelines 
+```bash
+```
+create a shell script for updation of images in k8s-specifications directory in azure repos.
+
+```bash
+#!/bin/bash
+
+set -x
+
+# Set the repository URL
+REPO_URL="https://<ACCESS-TOKEN>@dev.azure.com/<AZURE-DEVOPS-ORG-NAME>/voting-app/_git/voting-app"
+
+# Clone the git repository into the /tmp directory
+git clone "$REPO_URL" /tmp/temp_repo
+
+# Navigate into the cloned repository directory
+cd /tmp/temp_repo
+
+# Make changes to the Kubernetes manifest file(s)
+# For example, let's say you want to change the image tag in a deployment.yaml file
+sed -i "s|image:.*|image: <ACR-REGISTRY-NAME>/$2:$3|g" k8s-specifications/$1-deployment.yaml
+
+# Add the modified files
+git add .
+
+# Commit the changes
+git commit -m "Update Kubernetes manifest"
+
+# Push the changes back to the repository
+git push
+
+# Cleanup: remove the temporary directory
+rm -rf /tmp/temp_repo
+```
