@@ -43,7 +43,36 @@ yaml manifests
 helm
 operator
 
-Argo hands-on
+## Argo hands-on
+
+CI pipelines implementation
+different microservices
+
+
+Vote ---> python
+result ---> nodejs
+worker ---> dotnet
+
+redis--> in memory db
+pg ---> db
+need to implement CI for above
+
+clone below repo
+https://github.com/dockersamples/example-voting-app
+pre requiste docker deskyop need to be installed if your machine is windows
+then 
+docker compose up
+access the vote app from http://localhost:8080/
+access the result app from http://localhost:8081/
+
+
+dotnet application fetches this info from redis and posts this to postgres and results app will reds the data from postgres.
+
+we will create 1 ci pipeline for voting micro service 
+1 for result microservice
+1 for worker microservice
+
+
 
 
 
