@@ -72,8 +72,55 @@ we will create 1 ci pipeline for voting micro service
 1 for result microservice
 1 for worker microservice
 
+Create a project called voting-app in azure devops.
+
+Navigate to repos and click on import repo and provide this url (https://github.com/dockersamples/example-voting-app)
+
+Se the main branch as default branch in azure devops
+
+Navigate to azure portal --> naviage to azure container registry ---> create new 
+registry name: saikrishna
+rg: abc
+Navigate to pipelines and click on create pipeline and mention where is our code present and select repo and under configuration select buld and push an image to azure container registry.
 
 
+we are using path-based trigger ----whenever any changes made to vote directory or result directory or worker directory it will trigger automatically.
+
+we r using path based triggering for triggering code changes under result directory
+trigger: 
+  paths:
+    include:
+      - result/*
+changing the naming from votingapp to Resultapp
+imageRepository: 'Resultapp'
+
+Ensure the dockerfile path since we r buiding pipeline for result app check whether its considering the same or not.
+
+We are using our own agent for building the pipeline 
+https://learn.microsoft.com/en-us/azure/devops/pipelines/agents/linux-agent?view=azure-devops ---> follow this link for setting up agent.
+
+
+Navigate to project settings and click on agent pools  and add agent
+
+install docker on agent as its a pre requisite.
+below commands need to execute on agent
+```bash
+1. wget https://vstsagentpackage.azureedge.net/agent/4.251.0/vsts-agent-linux-x64-4.251.0.tar.gz
+2. tar zxvf ~/Downloads/vsts-agent-linux-x64-4.251.0.tar.gz
+3. ls
+4. sudo apt update
+5. ./config.sh
+6. ./run.sh
+7. sudo apt install docker.io
+8. service docker status
+9. whoami
+10. sudo usermod -aG docker ubuntu
+11. sudo systemctl restart docker
+12. logout
+13. docker ps
+14. cd myagent/
+15. ./run.sh
+```
 
 
 
